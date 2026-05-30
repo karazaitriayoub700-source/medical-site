@@ -1,0 +1,1273 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MedVision Pro — منصة الطب التفاعلية</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;900&family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #050a14;
+  --surface: #0a1628;
+  --surface2: #0f1f38;
+  --accent: #00d4ff;
+  --accent2: #0066ff;
+  --accent3: #7b2fff;
+  --gold: #ffd700;
+  --red: #ff3366;
+  --green: #00ff88;
+  --text: #e8f4ff;
+  --text-dim: #7a9ab8;
+  --border: rgba(0,212,255,0.15);
+  --glow: 0 0 20px rgba(0,212,255,0.3);
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  font-family: 'Tajawal', 'Cairo', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ─── ANIMATED BG ─── */
+.bg-grid {
+  position: fixed; inset:0; z-index:0;
+  background-image:
+    linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px);
+  background-size: 60px 60px;
+  animation: gridMove 20s linear infinite;
+}
+@keyframes gridMove { from{background-position:0 0} to{background-position:60px 60px} }
+
+.bg-orb {
+  position: fixed; border-radius:50%; filter:blur(80px); pointer-events:none; z-index:0;
+}
+.orb1 { width:600px; height:600px; background:radial-gradient(circle, rgba(0,102,255,0.12),transparent); top:-200px; right:-200px; animation: orbFloat 8s ease-in-out infinite; }
+.orb2 { width:400px; height:400px; background:radial-gradient(circle, rgba(123,47,255,0.1),transparent); bottom:-100px; left:-100px; animation: orbFloat 10s ease-in-out infinite reverse; }
+@keyframes orbFloat { 0%,100%{transform:translate(0,0)} 50%{transform:translate(30px,-30px)} }
+
+/* ─── HEADER ─── */
+header {
+  position: sticky; top:0; z-index:100;
+  background: rgba(5,10,20,0.85);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+  padding: 12px 32px;
+  display: flex; align-items:center; justify-content:space-between;
+}
+.logo {
+  font-size: 1.8rem; font-weight:900;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+  letter-spacing:-1px;
+}
+.logo span { color: var(--gold); -webkit-text-fill-color: var(--gold); }
+.header-nav { display:flex; gap:8px; }
+.nav-btn {
+  padding: 8px 18px; border-radius:20px; border:1px solid var(--border);
+  background: transparent; color: var(--text-dim); cursor:pointer;
+  font-family:inherit; font-size:0.9rem; transition:all 0.3s;
+}
+.nav-btn:hover, .nav-btn.active {
+  background: rgba(0,212,255,0.1); color: var(--accent);
+  border-color: var(--accent); box-shadow: var(--glow);
+}
+
+/* ─── MAIN LAYOUT ─── */
+.main-wrap {
+  position: relative; z-index:1;
+  display: grid;
+  grid-template-columns: 320px 1fr 320px;
+  grid-template-rows: auto 1fr;
+  gap: 0;
+  min-height: calc(100vh - 60px);
+}
+
+/* ─── PAGE TITLE ─── */
+.page-title {
+  grid-column: 1/-1;
+  text-align:center; padding: 32px 20px 16px;
+  position:relative;
+}
+.page-title h1 {
+  font-size: 2.5rem; font-weight:900;
+  background: linear-gradient(135deg, var(--accent), #fff, var(--accent2));
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+  margin-bottom:8px;
+}
+.page-title p { color: var(--text-dim); font-size:1rem; }
+
+/* ─── LEFT PANEL ─── */
+.left-panel {
+  padding: 20px 16px;
+  border-right: 1px solid var(--border);
+  display:flex; flex-direction:column; gap:12px;
+}
+
+.organ-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 14px 16px;
+  cursor: pointer;
+  transition: all 0.3s;
+  display:flex; align-items:center; gap:12px;
+  position:relative; overflow:hidden;
+}
+.organ-card::before {
+  content:''; position:absolute; inset:0;
+  background: linear-gradient(135deg, transparent, rgba(0,212,255,0.05));
+  opacity:0; transition:opacity 0.3s;
+}
+.organ-card:hover::before, .organ-card.active::before { opacity:1; }
+.organ-card:hover, .organ-card.active {
+  border-color: var(--accent);
+  box-shadow: var(--glow);
+  transform: translateX(-4px);
+}
+.organ-card.active { background: rgba(0,212,255,0.08); }
+
+.organ-icon-wrap {
+  width:44px; height:44px; border-radius:12px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:1.5rem; flex-shrink:0;
+  border: 1px solid rgba(255,255,255,0.1);
+}
+.organ-info h3 { font-size:1rem; font-weight:700; }
+.organ-info p { font-size:0.75rem; color:var(--text-dim); }
+.organ-badge {
+  margin-right:auto; padding:3px 8px; border-radius:10px;
+  font-size:0.65rem; font-weight:700;
+}
+.badge-vital { background:rgba(255,51,102,0.2); color:var(--red); border:1px solid rgba(255,51,102,0.3); }
+.badge-digest { background:rgba(255,215,0,0.2); color:var(--gold); border:1px solid rgba(255,215,0,0.3); }
+.badge-neuro { background:rgba(123,47,255,0.2); color:#a855f7; border:1px solid rgba(123,47,255,0.3); }
+.badge-resp { background:rgba(0,255,136,0.2); color:var(--green); border:1px solid rgba(0,255,136,0.3); }
+
+/* ─── CENTER - 3D BODY ─── */
+.center-panel {
+  display:flex; flex-direction:column; align-items:center;
+  padding: 20px;
+  position:relative;
+}
+
+.body-3d-container {
+  position:relative; width:280px; height:520px;
+  perspective: 800px;
+}
+
+.body-3d-inner {
+  width:100%; height:100%;
+  transform-style: preserve-3d;
+  animation: bodyRotate 12s linear infinite;
+  position:relative;
+}
+@keyframes bodyRotate {
+  0%   { transform: rotateY(0deg); }
+  100% { transform: rotateY(360deg); }
+}
+.body-3d-inner:hover { animation-play-state: paused; }
+
+.body-svg-wrap {
+  position:absolute; inset:0;
+  backface-visibility: hidden;
+}
+.body-svg-back {
+  position:absolute; inset:0;
+  backface-visibility: hidden;
+  transform: rotateY(180deg);
+  filter: brightness(0.4) hue-rotate(180deg);
+}
+
+/* SVG Body */
+.body-svg { width:100%; height:100%; }
+
+/* Organ hotspots */
+.organ-spot {
+  position:absolute;
+  width:20px; height:20px;
+  border-radius:50%;
+  cursor:pointer;
+  transform: translate(-50%,-50%);
+  z-index:10;
+  transition: all 0.3s;
+}
+.organ-spot::before {
+  content:''; position:absolute; inset:0;
+  border-radius:50%; animation: pulse 2s ease-in-out infinite;
+}
+.organ-spot:hover { transform: translate(-50%,-50%) scale(1.4); }
+.organ-spot.active { transform: translate(-50%,-50%) scale(1.5); }
+
+@keyframes pulse {
+  0%,100%{ box-shadow: 0 0 0 0 currentColor; opacity:1; }
+  50%{ box-shadow: 0 0 0 8px transparent; opacity:0.7; }
+}
+
+/* Label */
+.spot-label {
+  position:absolute; white-space:nowrap;
+  font-size:0.7rem; font-weight:700;
+  padding: 3px 8px; border-radius:10px;
+  pointer-events:none;
+  background: rgba(5,10,20,0.9);
+  border: 1px solid currentColor;
+  transform: translateY(-50%);
+}
+
+/* Controls */
+.body-controls {
+  display:flex; gap:10px; margin-top:16px;
+}
+.ctrl-btn {
+  padding: 8px 20px; border-radius:20px;
+  background: var(--surface); border: 1px solid var(--border);
+  color: var(--text-dim); cursor:pointer; font-family:inherit;
+  font-size:0.85rem; transition:all 0.3s;
+}
+.ctrl-btn:hover {
+  border-color:var(--accent); color:var(--accent);
+}
+.ctrl-btn.playing { border-color:var(--red); color:var(--red); }
+
+/* Info below body */
+.body-stats {
+  display:grid; grid-template-columns:1fr 1fr;
+  gap:8px; width:100%; max-width:280px; margin-top:16px;
+}
+.stat-chip {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:12px; padding:10px 12px; text-align:center;
+}
+.stat-chip .val { font-size:1.3rem; font-weight:900; color:var(--accent); }
+.stat-chip .lbl { font-size:0.7rem; color:var(--text-dim); }
+
+/* ─── RIGHT PANEL - Detail ─── */
+.right-panel {
+  border-left: 1px solid var(--border);
+  display:flex; flex-direction:column;
+  overflow:hidden;
+}
+
+.detail-header {
+  padding: 20px 20px 16px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+.detail-organ-name {
+  font-size:1.6rem; font-weight:900;
+  background: linear-gradient(135deg, var(--accent), #fff);
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+}
+.detail-latin { color:var(--text-dim); font-size:0.85rem; margin-bottom:12px; }
+
+.tabs {
+  display:flex; gap:6px; flex-wrap:wrap;
+}
+.tab-btn {
+  padding: 6px 14px; border-radius:14px;
+  background: transparent; border: 1px solid var(--border);
+  color: var(--text-dim); cursor:pointer; font-family:inherit;
+  font-size:0.8rem; transition:all 0.3s;
+}
+.tab-btn:hover { border-color:var(--accent); color:var(--accent); }
+.tab-btn.active { background: rgba(0,212,255,0.15); color:var(--accent); border-color:var(--accent); }
+
+.detail-content {
+  flex:1; overflow-y:auto; padding:20px;
+}
+.detail-content::-webkit-scrollbar { width:4px; }
+.detail-content::-webkit-scrollbar-track { background:transparent; }
+.detail-content::-webkit-scrollbar-thumb { background:var(--border); border-radius:2px; }
+
+.info-section { display:none; }
+.info-section.active { display:block; }
+
+.info-text {
+  font-size:0.9rem; line-height:1.8; color:var(--text);
+  margin-bottom:16px;
+}
+
+.facts-grid {
+  display:grid; grid-template-columns:1fr 1fr;
+  gap:8px; margin-bottom:16px;
+}
+.fact-box {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:12px; padding:12px;
+}
+.fact-box .f-val { font-size:1.2rem; font-weight:800; color:var(--gold); }
+.fact-box .f-lbl { font-size:0.7rem; color:var(--text-dim); margin-top:2px; }
+
+.disease-list { list-style:none; }
+.disease-list li {
+  padding: 10px 12px; margin-bottom:8px;
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:10px; font-size:0.85rem;
+  border-right: 3px solid var(--red);
+  display:flex; align-items:center; gap:8px;
+}
+.disease-list li::before { content:'⚠'; font-size:0.8rem; }
+
+.func-list { list-style:none; }
+.func-list li {
+  padding:8px 0; border-bottom:1px solid var(--border);
+  font-size:0.85rem; color:var(--text);
+  display:flex; align-items:flex-start; gap:8px;
+}
+.func-list li::before { content:'✦'; color:var(--accent); flex-shrink:0; margin-top:2px; }
+
+/* ─── AI SECTION ─── */
+.ai-section {
+  border-top: 1px solid var(--border);
+  padding: 16px 20px;
+  background: linear-gradient(135deg, rgba(123,47,255,0.05), rgba(0,102,255,0.05));
+}
+.ai-header {
+  display:flex; align-items:center; gap:8px;
+  margin-bottom:10px;
+}
+.ai-dot {
+  width:8px; height:8px; border-radius:50%;
+  background:var(--green); box-shadow:0 0 8px var(--green);
+  animation: aiPulse 1.5s ease-in-out infinite;
+}
+@keyframes aiPulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+.ai-title { font-size:0.85rem; font-weight:700; color:var(--accent3); }
+.ai-input-wrap { display:flex; gap:8px; }
+.ai-input {
+  flex:1; padding:10px 14px; border-radius:12px;
+  background:var(--surface); border:1px solid var(--border);
+  color:var(--text); font-family:inherit; font-size:0.85rem;
+  outline:none; transition:border-color 0.3s; direction:rtl;
+}
+.ai-input:focus { border-color:var(--accent3); }
+.ai-send {
+  width:40px; height:40px; border-radius:12px;
+  background:linear-gradient(135deg,var(--accent3),var(--accent2));
+  border:none; color:#fff; cursor:pointer; font-size:1rem;
+  transition: transform 0.2s, box-shadow 0.2s;
+  flex-shrink:0;
+}
+.ai-send:hover { transform:scale(1.05); box-shadow:0 4px 16px rgba(123,47,255,0.5); }
+
+.ai-response {
+  margin-top:10px; padding:12px;
+  background:var(--surface); border:1px solid rgba(123,47,255,0.2);
+  border-radius:12px; font-size:0.82rem; line-height:1.7;
+  color:var(--text); display:none; max-height:160px; overflow-y:auto;
+}
+.ai-response.show { display:block; }
+.ai-thinking {
+  display:flex; gap:4px; align-items:center;
+  color:var(--text-dim); font-size:0.8rem;
+}
+.ai-thinking span {
+  width:5px; height:5px; border-radius:50%; background:var(--accent3);
+  animation: bounce 1.2s ease-in-out infinite;
+}
+.ai-thinking span:nth-child(2){animation-delay:0.2s}
+.ai-thinking span:nth-child(3){animation-delay:0.4s}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+
+/* ─── WELCOME STATE ─── */
+.welcome-state {
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  height:100%; text-align:center; padding:40px;
+  color:var(--text-dim);
+}
+.welcome-state .w-icon { font-size:4rem; margin-bottom:16px; opacity:0.5; }
+.welcome-state h3 { font-size:1.1rem; color:var(--text); margin-bottom:8px; }
+.welcome-state p { font-size:0.85rem; line-height:1.6; }
+
+/* ─── SYSTEM STATUS ─── */
+.system-bar {
+  grid-column:1/-1;
+  padding:8px 32px;
+  display:flex; align-items:center; gap:24px;
+  background:rgba(0,255,136,0.03);
+  border-top:1px solid rgba(0,255,136,0.1);
+  font-size:0.75rem; color:var(--text-dim);
+}
+.sys-item { display:flex; align-items:center; gap:6px; }
+.sys-dot { width:6px; height:6px; border-radius:50%; }
+.sys-dot.green { background:var(--green); box-shadow:0 0 4px var(--green); }
+.sys-dot.blue { background:var(--accent); box-shadow:0 0 4px var(--accent); }
+.sys-dot.purple { background:var(--accent3); box-shadow:0 0 4px var(--accent3); }
+
+/* ─── RESPONSIVE ─── */
+@media (max-width:1100px) {
+  .main-wrap { grid-template-columns:1fr; }
+  .left-panel, .right-panel { border:none; border-top:1px solid var(--border); }
+  .center-panel { order:-1; }
+}
+
+/* Entry animations */
+@keyframes fadeSlideIn {
+  from { opacity:0; transform:translateY(20px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+.organ-card { animation: fadeSlideIn 0.5s ease both; }
+.organ-card:nth-child(1){animation-delay:0.1s}
+.organ-card:nth-child(2){animation-delay:0.15s}
+.organ-card:nth-child(3){animation-delay:0.2s}
+.organ-card:nth-child(4){animation-delay:0.25s}
+.organ-card:nth-child(5){animation-delay:0.3s}
+.organ-card:nth-child(6){animation-delay:0.35s}
+
+/* Highlighted organ glow on 3D */
+.spot-brain { top:9%; left:50%; }
+.spot-heart { top:35%; left:45%; }
+.spot-lungs-r { top:33%; left:35%; }
+.spot-lungs-l { top:33%; left:65%; }
+.spot-liver { top:46%; left:42%; }
+.spot-stomach { top:47%; left:56%; }
+.spot-kidneys-r { top:55%; left:38%; }
+.spot-kidneys-l { top:55%; left:62%; }
+.spot-intestine { top:62%; left:50%; }
+
+/* Spot colors */
+.spot-brain { color:#a855f7; background:rgba(168,85,247,0.9); box-shadow:0 0 12px rgba(168,85,247,0.6); }
+.spot-heart { color:#ff3366; background:rgba(255,51,102,0.9); box-shadow:0 0 12px rgba(255,51,102,0.6); }
+.spot-lungs-r, .spot-lungs-l { color:#00ff88; background:rgba(0,255,136,0.9); box-shadow:0 0 12px rgba(0,255,136,0.6); }
+.spot-liver { color:#ffd700; background:rgba(255,215,0,0.9); box-shadow:0 0 12px rgba(255,215,0,0.6); }
+.spot-stomach { color:#ff9500; background:rgba(255,149,0,0.9); box-shadow:0 0 12px rgba(255,149,0,0.6); }
+.spot-kidneys-r, .spot-kidneys-l { color:#00d4ff; background:rgba(0,212,255,0.9); box-shadow:0 0 12px rgba(0,212,255,0.6); }
+.spot-intestine { color:#ff6b35; background:rgba(255,107,53,0.9); box-shadow:0 0 12px rgba(255,107,53,0.6); }
+</style>
+</head>
+<body>
+
+<div class="bg-grid"></div>
+<div class="bg-orb orb1"></div>
+<div class="bg-orb orb2"></div>
+
+<header>
+  <div class="logo">Med<span>Vision</span> Pro</div>
+  <nav class="header-nav">
+    <button class="nav-btn active" onclick="switchPage('map')">🫀 خريطة الجسم</button>
+    <button class="nav-btn" onclick="switchPage('quiz')">🧠 اختبار ذكي</button>
+    <button class="nav-btn" onclick="switchPage('ai')">🤖 الذكاء الاصطناعي</button>
+  </nav>
+</header>
+
+<!-- PAGE: BODY MAP -->
+<div id="page-map" class="main-wrap">
+
+  <div class="page-title">
+    <h1>خريطة الجسم التفاعلية ثلاثية الأبعاد</h1>
+    <p>اضغط على أي عضو لعرض معلوماته الكاملة — قم بتدوير الجسم أو إيقافه</p>
+  </div>
+
+  <!-- LEFT: Organ list -->
+  <div class="left-panel">
+    <div class="organ-card" onclick="selectOrgan('brain')" id="card-brain">
+      <div class="organ-icon-wrap" style="background:rgba(168,85,247,0.15)">🧠</div>
+      <div class="organ-info"><h3>الدماغ</h3><p>Encephalon / Brain</p></div>
+      <span class="organ-badge badge-neuro">عصبي</span>
+    </div>
+    <div class="organ-card" onclick="selectOrgan('heart')" id="card-heart">
+      <div class="organ-icon-wrap" style="background:rgba(255,51,102,0.15)">❤️</div>
+      <div class="organ-info"><h3>القلب</h3><p>Cor / Heart</p></div>
+      <span class="organ-badge badge-vital">حيوي</span>
+    </div>
+    <div class="organ-card" onclick="selectOrgan('lungs')" id="card-lungs">
+      <div class="organ-icon-wrap" style="background:rgba(0,255,136,0.15)">🫁</div>
+      <div class="organ-info"><h3>الرئتان</h3><p>Pulmones / Lungs</p></div>
+      <span class="organ-badge badge-resp">تنفسي</span>
+    </div>
+    <div class="organ-card" onclick="selectOrgan('liver')" id="card-liver">
+      <div class="organ-icon-wrap" style="background:rgba(255,215,0,0.15)">🫀</div>
+      <div class="organ-info"><h3>الكبد</h3><p>Hepar / Liver</p></div>
+      <span class="organ-badge badge-digest">هضمي</span>
+    </div>
+    <div class="organ-card" onclick="selectOrgan('stomach')" id="card-stomach">
+      <div class="organ-icon-wrap" style="background:rgba(255,149,0,0.15)">🫃</div>
+      <div class="organ-info"><h3>المعدة</h3><p>Gaster / Stomach</p></div>
+      <span class="organ-badge badge-digest">هضمي</span>
+    </div>
+    <div class="organ-card" onclick="selectOrgan('kidneys')" id="card-kidneys">
+      <div class="organ-icon-wrap" style="background:rgba(0,212,255,0.15)">🫘</div>
+      <div class="organ-info"><h3>الكليتان</h3><p>Renes / Kidneys</p></div>
+      <span class="organ-badge badge-vital">ترشيح</span>
+    </div>
+    <div class="organ-card" onclick="selectOrgan('intestine')" id="card-intestine">
+      <div class="organ-icon-wrap" style="background:rgba(255,107,53,0.15)">🌀</div>
+      <div class="organ-info"><h3>الأمعاء</h3><p>Intestinum</p></div>
+      <span class="organ-badge badge-digest">هضمي</span>
+    </div>
+    <div class="organ-card" onclick="selectOrgan('spine')" id="card-spine">
+      <div class="organ-icon-wrap" style="background:rgba(0,102,255,0.15)">🦴</div>
+      <div class="organ-info"><h3>العمود الفقري</h3><p>Columna Vertebralis</p></div>
+      <span class="organ-badge badge-neuro">هيكلي</span>
+    </div>
+  </div>
+
+  <!-- CENTER: 3D Body -->
+  <div class="center-panel">
+    <div class="body-3d-container" id="body3d">
+      <div class="body-3d-inner" id="body3dInner">
+
+        <!-- FRONT -->
+        <div class="body-svg-wrap">
+          <svg class="body-svg" viewBox="0 0 280 520" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <radialGradient id="skinGrad" cx="50%" cy="30%" r="70%">
+                <stop offset="0%" stop-color="#c4956a"/>
+                <stop offset="100%" stop-color="#8b5e3c"/>
+              </radialGradient>
+              <radialGradient id="headGrad" cx="50%" cy="40%" r="60%">
+                <stop offset="0%" stop-color="#d4a574"/>
+                <stop offset="100%" stop-color="#9b6e44"/>
+              </radialGradient>
+              <filter id="bodyGlow">
+                <feGaussianBlur stdDeviation="2" result="blur"/>
+                <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+              </filter>
+              <linearGradient id="brainGrad" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stop-color="#a855f7"/>
+                <stop offset="100%" stop-color="#7c3aed"/>
+              </linearGradient>
+              <linearGradient id="heartGrad" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stop-color="#ff3366"/>
+                <stop offset="100%" stop-color="#cc0033"/>
+              </linearGradient>
+              <linearGradient id="lungGrad" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stop-color="#00ff88"/>
+                <stop offset="100%" stop-color="#00a855"/>
+              </linearGradient>
+              <linearGradient id="liverGrad" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stop-color="#ffd700"/>
+                <stop offset="100%" stop-color="#b8860b"/>
+              </linearGradient>
+              <linearGradient id="stomachGrad" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stop-color="#ff9500"/>
+                <stop offset="100%" stop-color="#cc7000"/>
+              </linearGradient>
+              <linearGradient id="kidneyGrad" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stop-color="#00d4ff"/>
+                <stop offset="100%" stop-color="#0088aa"/>
+              </linearGradient>
+            </defs>
+
+            <!-- Body silhouette glow -->
+            <ellipse cx="140" cy="65" rx="45" ry="52" fill="rgba(0,212,255,0.05)" filter="url(#bodyGlow)"/>
+            <rect x="80" y="110" width="120" height="200" rx="20" fill="rgba(0,212,255,0.03)"/>
+
+            <!-- HEAD -->
+            <ellipse cx="140" cy="62" rx="42" ry="50" fill="url(#headGrad)" stroke="rgba(0,212,255,0.3)" stroke-width="1"/>
+            <!-- Face features -->
+            <ellipse cx="126" cy="58" rx="6" ry="7" fill="rgba(0,0,0,0.4)"/>
+            <ellipse cx="154" cy="58" rx="6" ry="7" fill="rgba(0,0,0,0.4)"/>
+            <ellipse cx="127" cy="56" rx="3" ry="4" fill="#1a88ff" opacity="0.8"/>
+            <ellipse cx="155" cy="56" rx="3" ry="4" fill="#1a88ff" opacity="0.8"/>
+            <path d="M130 75 Q140 82 150 75" stroke="rgba(255,255,255,0.4)" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+            <ellipse cx="140" cy="68" rx="4" ry="3" fill="rgba(0,0,0,0.2)"/>
+            <!-- Hair -->
+            <path d="M100 52 Q110 20 140 18 Q170 20 180 52" fill="#2c1810" stroke="none"/>
+
+            <!-- NECK -->
+            <rect x="126" y="108" width="28" height="22" rx="8" fill="url(#skinGrad)"/>
+
+            <!-- SHOULDERS -->
+            <ellipse cx="80" cy="130" rx="28" ry="20" fill="url(#skinGrad)" stroke="rgba(0,212,255,0.2)" stroke-width="1"/>
+            <ellipse cx="200" cy="130" rx="28" ry="20" fill="url(#skinGrad)" stroke="rgba(0,212,255,0.2)" stroke-width="1"/>
+
+            <!-- TORSO -->
+            <path d="M90 118 L85 320 Q140 335 195 320 L190 118 Q165 112 140 112 Q115 112 90 118Z"
+                  fill="url(#skinGrad)" stroke="rgba(0,212,255,0.25)" stroke-width="1.5"/>
+
+            <!-- Chest muscles lines -->
+            <path d="M110 145 Q140 155 170 145" stroke="rgba(0,0,0,0.2)" stroke-width="1" fill="none"/>
+            <line x1="140" y1="140" x2="140" y2="315" stroke="rgba(0,0,0,0.15)" stroke-width="1.5"/>
+
+            <!-- ARMS -->
+            <path d="M62 120 Q42 200 48 290 Q58 300 70 290 Q72 205 90 128Z"
+                  fill="url(#skinGrad)" stroke="rgba(0,212,255,0.2)" stroke-width="1"/>
+            <path d="M218 120 Q238 200 232 290 Q222 300 210 290 Q208 205 190 128Z"
+                  fill="url(#skinGrad)" stroke="rgba(0,212,255,0.2)" stroke-width="1"/>
+
+            <!-- HANDS -->
+            <ellipse cx="58" cy="300" rx="16" ry="22" fill="url(#skinGrad)"/>
+            <ellipse cx="222" cy="300" rx="16" ry="22" fill="url(#skinGrad)"/>
+            <!-- Fingers -->
+            <g fill="url(#skinGrad)" stroke="rgba(0,0,0,0.1)" stroke-width="0.5">
+              <ellipse cx="46" cy="317" rx="5" ry="8"/>
+              <ellipse cx="53" cy="322" rx="5" ry="9"/>
+              <ellipse cx="61" cy="323" rx="5" ry="9"/>
+              <ellipse cx="69" cy="321" rx="5" ry="8"/>
+              <ellipse cx="76" cy="316" rx="4" ry="7"/>
+            </g>
+            <g fill="url(#skinGrad)" stroke="rgba(0,0,0,0.1)" stroke-width="0.5">
+              <ellipse cx="234" cy="317" rx="5" ry="8"/>
+              <ellipse cx="227" cy="322" rx="5" ry="9"/>
+              <ellipse cx="219" cy="323" rx="5" ry="9"/>
+              <ellipse cx="211" cy="321" rx="5" ry="8"/>
+              <ellipse cx="204" cy="316" rx="4" ry="7"/>
+            </g>
+
+            <!-- PELVIS -->
+            <path d="M88 310 Q90 345 100 360 Q140 370 180 360 Q190 345 192 310Z"
+                  fill="url(#skinGrad)" stroke="rgba(0,212,255,0.2)" stroke-width="1"/>
+
+            <!-- LEGS -->
+            <path d="M100 355 Q95 440 98 510 Q114 518 126 510 Q128 440 130 355Z"
+                  fill="url(#skinGrad)" stroke="rgba(0,212,255,0.2)" stroke-width="1"/>
+            <path d="M180 355 Q185 440 182 510 Q166 518 154 510 Q152 440 150 355Z"
+                  fill="url(#skinGrad)" stroke="rgba(0,212,255,0.2)" stroke-width="1"/>
+
+            <!-- FEET -->
+            <ellipse cx="112" cy="514" rx="18" ry="8" fill="url(#skinGrad)"/>
+            <ellipse cx="168" cy="514" rx="18" ry="8" fill="url(#skinGrad)"/>
+
+            <!-- ═══ INTERNAL ORGANS (visible through body) ═══ -->
+
+            <!-- BRAIN inside head -->
+            <g id="organ-brain-svg" class="organ-svg-group" onclick="selectOrgan('brain')" style="cursor:pointer">
+              <ellipse cx="140" cy="55" rx="30" ry="28" fill="url(#brainGrad)" opacity="0.75" stroke="#a855f7" stroke-width="1.5"/>
+              <!-- Brain folds -->
+              <path d="M120 48 Q130 40 140 48 Q150 40 160 48" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="1.5" stroke-linecap="round"/>
+              <path d="M115 58 Q125 52 135 60 Q145 52 155 60 Q162 54 168 58" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1.2" stroke-linecap="round"/>
+              <path d="M118 68 Q130 63 140 68 Q150 63 162 68" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1.2" stroke-linecap="round"/>
+              <line x1="140" y1="30" x2="140" y2="80" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>
+              <animateTransform attributeName="transform" type="scale" values="1;1.02;1" dur="3s" repeatCount="indefinite" additive="sum" transformOrigin="140 55"/>
+            </g>
+
+            <!-- HEART -->
+            <g id="organ-heart-svg" class="organ-svg-group" onclick="selectOrgan('heart')" style="cursor:pointer">
+              <path d="M130 175 Q120 162 112 168 Q105 175 115 188 L130 205 L145 188 Q155 175 148 168 Q140 162 130 175Z"
+                    fill="url(#heartGrad)" opacity="0.85" stroke="#ff3366" stroke-width="1.5"/>
+              <animateTransform attributeName="transform" type="scale" values="1;1.08;1;1.06;1" dur="0.85s" repeatCount="indefinite" additive="sum" transformOrigin="130 185"/>
+            </g>
+
+            <!-- RIGHT LUNG -->
+            <g id="organ-lungs-svg" class="organ-svg-group" onclick="selectOrgan('lungs')" style="cursor:pointer">
+              <path d="M95 158 Q85 170 88 210 Q90 230 105 235 Q118 230 118 210 Q115 175 110 158Z"
+                    fill="url(#lungGrad)" opacity="0.7" stroke="#00ff88" stroke-width="1.5"/>
+              <!-- LEFT LUNG -->
+              <path d="M162 158 Q172 170 170 210 Q168 230 155 235 Q142 230 142 210 Q145 175 150 158Z"
+                    fill="url(#lungGrad)" opacity="0.7" stroke="#00ff88" stroke-width="1.5"/>
+              <!-- Breathing animation -->
+              <animateTransform attributeName="transform" type="scale" values="1;1.05;1" dur="4s" repeatCount="indefinite" additive="sum" transformOrigin="130 195"/>
+            </g>
+
+            <!-- LIVER -->
+            <g id="organ-liver-svg" class="organ-svg-group" onclick="selectOrgan('liver')" style="cursor:pointer">
+              <path d="M100 245 Q100 265 115 272 Q135 278 155 270 Q168 262 165 248 Q160 238 140 238 Q115 236 100 245Z"
+                    fill="url(#liverGrad)" opacity="0.8" stroke="#ffd700" stroke-width="1.5"/>
+            </g>
+
+            <!-- STOMACH -->
+            <g id="organ-stomach-svg" class="organ-svg-group" onclick="selectOrgan('stomach')" style="cursor:pointer">
+              <path d="M148 252 Q160 255 165 268 Q165 283 155 287 Q143 290 138 278 Q135 265 148 252Z"
+                    fill="url(#stomachGrad)" opacity="0.8" stroke="#ff9500" stroke-width="1.5"/>
+            </g>
+
+            <!-- KIDNEYS -->
+            <g id="organ-kidneys-svg" class="organ-svg-group" onclick="selectOrgan('kidneys')" style="cursor:pointer">
+              <!-- Right kidney -->
+              <path d="M100 285 Q92 293 95 308 Q100 318 110 316 Q120 312 118 298 Q116 287 100 285Z"
+                    fill="url(#kidneyGrad)" opacity="0.8" stroke="#00d4ff" stroke-width="1.5"/>
+              <!-- Left kidney -->
+              <path d="M180 285 Q188 293 185 308 Q180 318 170 316 Q160 312 162 298 Q164 287 180 285Z"
+                    fill="url(#kidneyGrad)" opacity="0.8" stroke="#00d4ff" stroke-width="1.5"/>
+            </g>
+
+            <!-- INTESTINE -->
+            <g id="organ-intestine-svg" class="organ-svg-group" onclick="selectOrgan('intestine')" style="cursor:pointer">
+              <path d="M105 310 Q95 325 100 345 Q108 358 125 355 Q140 352 155 355 Q172 358 180 345 Q185 325 175 310 Q165 305 155 312 Q145 320 130 318 Q115 316 105 310Z"
+                    fill="rgba(255,107,53,0.6)" stroke="#ff6b35" stroke-width="1.5"/>
+              <!-- Coils -->
+              <path d="M110 325 Q125 318 140 325 Q155 332 170 325" fill="none" stroke="rgba(255,107,53,0.5)" stroke-width="2"/>
+              <path d="M108 338 Q123 331 138 338 Q153 345 168 338" fill="none" stroke="rgba(255,107,53,0.4)" stroke-width="1.5"/>
+            </g>
+
+            <!-- SPINE -->
+            <g id="organ-spine-svg" class="organ-svg-group" onclick="selectOrgan('spine')" style="cursor:pointer">
+              <g opacity="0.5">
+                <rect x="135" y="130" width="10" height="8" rx="2" fill="#4488ff"/>
+                <rect x="135" y="143" width="10" height="8" rx="2" fill="#4488ff"/>
+                <rect x="135" y="156" width="10" height="8" rx="2" fill="#4488ff"/>
+                <rect x="135" y="169" width="10" height="8" rx="2" fill="#4488ff"/>
+                <rect x="135" y="182" width="10" height="8" rx="2" fill="#4488ff"/>
+                <rect x="135" y="195" width="10" height="8" rx="2" fill="#4488ff"/>
+                <rect x="135" y="208" width="10" height="8" rx="2" fill="#4488ff"/>
+                <rect x="135" y="221" width="10" height="8" rx="2" fill="#4488ff"/>
+                <rect x="135" y="234" width="10" height="8" rx="2" fill="#4488ff"/>
+                <rect x="135" y="247" width="10" height="8" rx="2" fill="#4488ff"/>
+                <rect x="135" y="260" width="10" height="8" rx="2" fill="#4488ff"/>
+                <rect x="135" y="273" width="10" height="8" rx="2" fill="#4488ff"/>
+              </g>
+            </g>
+
+            <!-- Body outline glow effect -->
+            <path d="M62 120 Q42 200 48 295 Q62 308 60 325 M218 120 Q238 200 232 295 Q218 308 220 325" stroke="rgba(0,212,255,0.1)" stroke-width="8" fill="none" filter="url(#bodyGlow)"/>
+          </svg>
+        </div>
+
+        <!-- BACK of body (mirror) -->
+        <div class="body-svg-back">
+          <svg class="body-svg" viewBox="0 0 280 520" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <radialGradient id="skinGradB" cx="50%" cy="30%" r="70%">
+                <stop offset="0%" stop-color="#9b6e44"/>
+                <stop offset="100%" stop-color="#6b4424"/>
+              </radialGradient>
+            </defs>
+            <ellipse cx="140" cy="62" rx="42" ry="50" fill="url(#skinGradB)"/>
+            <path d="M100 52 Q110 20 140 18 Q170 20 180 52" fill="#2c1810"/>
+            <rect x="126" y="108" width="28" height="22" rx="8" fill="url(#skinGradB)"/>
+            <ellipse cx="80" cy="130" rx="28" ry="20" fill="url(#skinGradB)"/>
+            <ellipse cx="200" cy="130" rx="28" ry="20" fill="url(#skinGradB)"/>
+            <path d="M90 118 L85 320 Q140 335 195 320 L190 118 Q165 112 140 112 Q115 112 90 118Z" fill="url(#skinGradB)"/>
+            <path d="M62 120 Q42 200 48 290 Q58 300 70 290 Q72 205 90 128Z" fill="url(#skinGradB)"/>
+            <path d="M218 120 Q238 200 232 290 Q222 300 210 290 Q208 205 190 128Z" fill="url(#skinGradB)"/>
+            <path d="M100 355 Q95 440 98 510 Q114 518 126 510 Q128 440 130 355Z" fill="url(#skinGradB)"/>
+            <path d="M180 355 Q185 440 182 510 Q166 518 154 510 Q152 440 150 355Z" fill="url(#skinGradB)"/>
+            <!-- Back muscles -->
+            <path d="M110 145 Q125 135 140 140 Q155 135 170 145" stroke="rgba(0,0,0,0.2)" stroke-width="2" fill="none"/>
+            <path d="M105 180 Q120 170 140 175 Q160 170 175 180" stroke="rgba(0,0,0,0.15)" stroke-width="1.5" fill="none"/>
+            <path d="M105 220 Q120 212 140 216 Q160 212 175 220" stroke="rgba(0,0,0,0.12)" stroke-width="1.5" fill="none"/>
+            <line x1="140" y1="128" x2="140" y2="315" stroke="rgba(0,0,0,0.2)" stroke-width="2"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- Controls -->
+    <div class="body-controls">
+      <button class="ctrl-btn playing" id="rotateBtn" onclick="toggleRotation()">⏸ إيقاف الدوران</button>
+      <button class="ctrl-btn" onclick="toggleOrgans()">👁 الأعضاء</button>
+      <button class="ctrl-btn" onclick="resetView()">🔄 إعادة</button>
+    </div>
+
+    <!-- Body stats -->
+    <div class="body-stats">
+      <div class="stat-chip"><div class="val">37°</div><div class="lbl">درجة الحرارة</div></div>
+      <div class="stat-chip"><div class="val">206</div><div class="lbl">عظمة في الجسم</div></div>
+      <div class="stat-chip"><div class="val">78</div><div class="lbl">نبضة/دقيقة</div></div>
+      <div class="stat-chip"><div class="val">600+</div><div class="lbl">عضلة</div></div>
+    </div>
+  </div>
+
+  <!-- RIGHT: Organ Detail -->
+  <div class="right-panel">
+    <div class="detail-header" id="detailHeader">
+      <div class="detail-organ-name" id="organName">اختر عضواً</div>
+      <div class="detail-latin" id="organLatin">انقر على أي عضو لعرض تفاصيله الكاملة</div>
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('overview')">نظرة عامة</button>
+        <button class="tab-btn" onclick="switchTab('functions')">الوظائف</button>
+        <button class="tab-btn" onclick="switchTab('diseases')">الأمراض</button>
+        <button class="tab-btn" onclick="switchTab('anatomy')">التشريح</button>
+      </div>
+    </div>
+
+    <div class="detail-content" id="detailContent">
+      <div class="welcome-state" id="welcomeState">
+        <div class="w-icon">🔬</div>
+        <h3>استكشف جسم الإنسان</h3>
+        <p>اضغط على أي عضو في القائمة أو على الجسم ثلاثي الأبعاد لعرض معلومات تفصيلية كاملة مع الذكاء الاصطناعي</p>
+      </div>
+      <div id="tabOverview" class="info-section"></div>
+      <div id="tabFunctions" class="info-section"></div>
+      <div id="tabDiseases" class="info-section"></div>
+      <div id="tabAnatomy" class="info-section"></div>
+    </div>
+
+    <div class="ai-section">
+      <div class="ai-header">
+        <div class="ai-dot"></div>
+        <span class="ai-title">🤖 مساعد MedVision الذكي</span>
+      </div>
+      <div class="ai-input-wrap">
+        <input class="ai-input" id="aiInput" type="text" placeholder="اسأل عن أي عضو أو مرض..." onkeydown="if(event.key==='Enter')sendAI()"/>
+        <button class="ai-send" onclick="sendAI()">➤</button>
+      </div>
+      <div class="ai-response" id="aiResponse"></div>
+    </div>
+  </div>
+
+  <div class="system-bar">
+    <div class="sys-item"><div class="sys-dot green"></div>النظام يعمل</div>
+    <div class="sys-item"><div class="sys-dot blue"></div>8 أعضاء مرتبطة</div>
+    <div class="sys-item"><div class="sys-dot purple"></div>الذكاء الاصطناعي متصل</div>
+    <div class="sys-item" style="margin-right:auto; color:var(--gold)">MedVision Pro v2.0</div>
+  </div>
+</div>
+
+<!-- PAGE: QUIZ -->
+<div id="page-quiz" style="display:none; padding:40px; position:relative; z-index:1;">
+  <div style="max-width:700px; margin:0 auto;">
+    <h2 style="font-size:2rem; font-weight:900; text-align:center; margin-bottom:8px; background:linear-gradient(135deg,var(--accent),#fff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">🧠 اختبار المعرفة الطبية</h2>
+    <p style="text-align:center;color:var(--text-dim);margin-bottom:32px;">اختبر معلوماتك عن جسم الإنسان مع الذكاء الاصطناعي</p>
+    <div id="quizArea" style="background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:32px;">
+      <div style="text-align:center;">
+        <div style="font-size:3rem;margin-bottom:16px;">🎯</div>
+        <h3 style="font-size:1.3rem;margin-bottom:16px;">ابدأ اختبار تفاعلي مع الذكاء الاصطناعي</h3>
+        <p style="color:var(--text-dim);margin-bottom:24px;">سيطرح عليك الذكاء الاصطناعي أسئلة متنوعة عن أعضاء جسم الإنسان ووظائفها</p>
+        <button onclick="startQuiz()" style="padding:14px 40px;background:linear-gradient(135deg,var(--accent2),var(--accent3));border:none;color:#fff;border-radius:25px;font-size:1.1rem;font-family:inherit;cursor:pointer;font-weight:700;">ابدأ الاختبار ✨</button>
+      </div>
+    </div>
+    <div id="quizChat" style="margin-top:16px;display:none;">
+      <div id="quizMessages" style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:20px;min-height:300px;max-height:400px;overflow-y:auto;margin-bottom:12px;"></div>
+      <div style="display:flex;gap:8px;">
+        <input id="quizInput" type="text" placeholder="اكتب إجابتك..." style="flex:1;padding:12px 16px;background:var(--surface2);border:1px solid var(--border);border-radius:12px;color:var(--text);font-family:inherit;font-size:0.9rem;outline:none;" onkeydown="if(event.key==='Enter')sendQuizAnswer()"/>
+        <button onclick="sendQuizAnswer()" style="padding:12px 24px;background:linear-gradient(135deg,var(--accent2),var(--accent));border:none;color:#fff;border-radius:12px;font-family:inherit;cursor:pointer;font-weight:700;">إرسال</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE: FULL AI -->
+<div id="page-ai" style="display:none; padding:40px; position:relative; z-index:1;">
+  <div style="max-width:800px; margin:0 auto;">
+    <h2 style="font-size:2rem; font-weight:900; text-align:center; margin-bottom:8px; background:linear-gradient(135deg,var(--accent3),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;">🤖 الذكاء الاصطناعي الطبي</h2>
+    <p style="text-align:center;color:var(--text-dim);margin-bottom:32px;">اسأل أي سؤال طبي وسيجيبك الذكاء الاصطناعي بدقة</p>
+    <div id="aiFullMessages" style="background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:24px;min-height:400px;max-height:500px;overflow-y:auto;margin-bottom:16px;">
+      <div class="ai-msg bot-msg" style="background:rgba(123,47,255,0.1);border:1px solid rgba(123,47,255,0.2);border-radius:14px;padding:16px;margin-bottom:12px;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+          <span style="font-size:1.2rem;">🤖</span>
+          <span style="font-size:0.8rem;color:var(--text-dim);">MedVision AI</span>
+        </div>
+        <p style="font-size:0.9rem;line-height:1.7;">مرحباً! أنا مساعدك الطبي الذكي. يمكنني مساعدتك في فهم أعضاء الجسم، وظائفها، أمراضها، وأي معلومات طبية تريدها. كيف يمكنني مساعدتك اليوم؟</p>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;">
+      <input id="aiFullInput" type="text" placeholder="اسأل عن أي موضوع طبي..." style="flex:1;padding:14px 20px;background:var(--surface);border:1px solid var(--border);border-radius:14px;color:var(--text);font-family:inherit;font-size:1rem;outline:none;direction:rtl;" onkeydown="if(event.key==='Enter')sendFullAI()"/>
+      <button onclick="sendFullAI()" style="padding:14px 28px;background:linear-gradient(135deg,var(--accent3),var(--accent2));border:none;color:#fff;border-radius:14px;font-family:inherit;cursor:pointer;font-weight:700;font-size:1rem;">إرسال ➤</button>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;">
+      <button onclick="quickAsk('ما هو القلب وكيف يعمل؟')" style="padding:6px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:20px;color:var(--text-dim);cursor:pointer;font-family:inherit;font-size:0.8rem;">❤️ عن القلب</button>
+      <button onclick="quickAsk('ما هي وظائف الكبد؟')" style="padding:6px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:20px;color:var(--text-dim);cursor:pointer;font-family:inherit;font-size:0.8rem;">🟡 وظائف الكبد</button>
+      <button onclick="quickAsk('كيف تعمل الرئتان في التنفس؟')" style="padding:6px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:20px;color:var(--text-dim);cursor:pointer;font-family:inherit;font-size:0.8rem;">🫁 الرئتان</button>
+      <button onclick="quickAsk('ما هي أمراض الكلى الشائعة؟')" style="padding:6px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:20px;color:var(--text-dim);cursor:pointer;font-family:inherit;font-size:0.8rem;">💧 أمراض الكلى</button>
+      <button onclick="quickAsk('كيف يعمل الجهاز الهضمي؟')" style="padding:6px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:20px;color:var(--text-dim);cursor:pointer;font-family:inherit;font-size:0.8rem;">🌀 الهضم</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════
+//  ORGAN DATA (Complete)
+// ═══════════════════════════════
+const organs = {
+  brain: {
+    name: 'الدماغ',
+    latin: 'Encephalon / Brain',
+    icon: '🧠',
+    color: '#a855f7',
+    overview: `الدماغ هو مركز التحكم في جسم الإنسان. يزن حوالي 1.4 كيلوغرام ويحتوي على 86 مليار خلية عصبية (نيورون) مترابطة بتريليونات من الوصلات العصبية (السيناپس).`,
+    facts: [
+      {val:'86 مليار', lbl:'خلية عصبية'},
+      {val:'~1.4 كغ', lbl:'الوزن'},
+      {val:'حتى 120 م/ث', lbl:'سرعة الإشارات'},
+      {val:'20% من الجسم', lbl:'استهلاك الطاقة'},
+    ],
+    functions: ['التحكم في جميع وظائف الجسم اللاإرادية كالتنفس والهضم','معالجة المعلومات الحسية من الحواس الخمس','التفكير والتعلم والذاكرة قصيرة وطويلة الأمد','التحكم في الحركة والتوازن والتنسيق','تنظيم المشاعر والسلوك العاطفي عبر الجهاز الحوفي','إفراز الهرمونات عبر تحت المهاد والغدة النخامية','معالجة اللغة والكلام والفهم'],
+    diseases: ['السكتة الدماغية — انقطاع تدفق الدم','مرض ألزهايمر — تدهور تدريجي في الذاكرة','الصرع — نشاط كهربائي غير طبيعي','أورام الدماغ — خلايا غير طبيعية','الشقيقة (الصداع النصفي) — صداع حاد متكرر','التهاب السحايا — التهاب أغشية الدماغ','مرض باركنسون — تأثير على الحركة'],
+    anatomy: 'يتكون الدماغ من: القشرة الدماغية (الجزء الخارجي المتجعد)، الجهاز الحوفي (المشاعر)، المخيخ (التوازن)، جذع الدماغ (الوظائف الحيوية)، الجسم الثفني (يربط نصفي الكرة)، والمهاد (بوابة المعلومات).'
+  },
+  heart: {
+    name: 'القلب',
+    latin: 'Cor / Heart',
+    icon: '❤️',
+    color: '#ff3366',
+    overview: `القلب هو المضخة الحيوية للجسم. يضخ الدم عبر شبكة من الأوعية الدموية الممتدة لأكثر من 96,000 كيلومتر. يمكنه الخفقان 100,000 مرة يومياً ويضخ حوالي 7,500 لتر من الدم يومياً.`,
+    facts: [
+      {val:'~300 غ', lbl:'الوزن'},
+      {val:'100,000', lbl:'نبضة/يوم'},
+      {val:'7,500 لتر', lbl:'دم/يوم'},
+      {val:'4 غرف', lbl:'أذينان وبطينان'},
+    ],
+    functions: ['ضخ الدم المؤكسج إلى جميع أعضاء الجسم','استقبال الدم غير المؤكسج وإرساله للرئتين','تنظيم الضغط الدموي بالتنسيق مع الكلى','الحفاظ على ثبات الدورة الدموية','نقل العناصر الغذائية والأكسجين للخلايا','إزالة ثاني أكسيد الكربون ومنتجات الأيض'],
+    diseases: ['احتشاء عضلة القلب (النوبة القلبية)','القصور القلبي — ضعف قدرة الضخ','الرجفان الأذيني — اضطراب الإيقاع','تصلب الشرايين — ترسب الدهون','أمراض صمامات القلب','ارتفاع ضغط الدم المزمن'],
+    anatomy: 'يتكون من 4 غرف: الأذين الأيمن والأيسر (العلويتان) والبطين الأيمن والأيسر (السفليتان). يحتوي على 4 صمامات: التاجي، الأبهري، ثلاثي الشرفات، وصمام الرئة. محاط بغشاء التامور.'
+  },
+  lungs: {
+    name: 'الرئتان',
+    latin: 'Pulmones / Lungs',
+    icon: '🫁',
+    color: '#00ff88',
+    overview: `الرئتان هما عضو التنفس الرئيسي. تحتويان معاً على حوالي 300 مليون حويصلة هوائية (ألفيولي). إذا فُردت مساحتها لبلغت حوالي 70-80 متراً مربعاً — مساحة غرفة كاملة!`,
+    facts: [
+      {val:'300 مليون', lbl:'حويصلة هوائية'},
+      {val:'70-80 م²', lbl:'المساحة الكلية'},
+      {val:'~1.1 كغ', lbl:'وزن الرئتين'},
+      {val:'15-20', lbl:'شهقة/دقيقة'},
+    ],
+    functions: ['تبادل الغازات: إدخال الأكسجين وإخراج CO₂','ترشيح وتنقية الهواء المستنشق من الجزيئات','ترطيب وتدفئة الهواء قبل وصوله للرئتين','المساهمة في توازن pH الدم','المساعدة في الكلام والصوت','تصفية الجلطات الدموية الصغيرة'],
+    diseases: ['الربو — تضيق مجاري الهواء','الالتهاب الرئوي — عدوى بكتيرية أو فيروسية','مرض الانسداد الرئوي المزمن (COPD)','سرطان الرئة','التليف الرئوي','الانصباب الجنبي'],
+    anatomy: 'الرئة اليمنى لها 3 فصوص، واليسرى لها 2. تتصلان بالقصبة الهوائية. تحيط بهما غشاء الجنب. تعمل بفضل الحجاب الحاجز والعضلات الوربية.'
+  },
+  liver: {
+    name: 'الكبد',
+    latin: 'Hepar / Liver',
+    icon: '🟡',
+    color: '#ffd700',
+    overview: `الكبد هو أكبر عضو داخلي في الجسم ويؤدي أكثر من 500 وظيفة حيوية! وهو أحد الأعضاء القليلة القادرة على التجدد الذاتي — يمكنه استعادة حجمه الكامل حتى لو فُقد 75% منه.`,
+    facts: [
+      {val:'+500', lbl:'وظيفة حيوية'},
+      {val:'~1.5 كغ', lbl:'الوزن'},
+      {val:'75%', lbl:'قدرة التجدد'},
+      {val:'1.5 لتر', lbl:'دم/دقيقة'},
+    ],
+    functions: ['تصنيع بروتينات الدم كالألبومين وعوامل التخثر','إزالة السموم من الدم والمواد الضارة','إنتاج الصفراء لهضم الدهون','تخزين الجليكوجين (احتياطي السكر)','تصنيع الكوليسترول والدهون الثلاثية','تنظيم مستوى السكر في الدم','استقلاب الأدوية والكحول'],
+    diseases: ['التهاب الكبد الفيروسي A/B/C','تليف الكبد — ندبات دائمة','مرض الكبد الدهني','سرطان الكبد الأولي','قصور الكبد الحاد','تحص صفراوي (حصى المرارة)'],
+    anatomy: 'يتكون من فصين رئيسيين (الأيمن أكبر) و8 أجزاء. يتلقى الدم من مصدرين: الشريان الكبدي والوريد البابي. يفرز الصفراء عبر القنوات الصفراوية للمرارة.'
+  },
+  stomach: {
+    name: 'المعدة',
+    latin: 'Gaster / Stomach',
+    icon: '🫃',
+    color: '#ff9500',
+    overview: `المعدة هي الكيس العضلي المرن الذي يتلقى الطعام من المريء ويهضمه كيميائياً وميكانيكياً. تستطيع استيعاب حتى 4 لترات من الطعام. تُفرز جدرانها حوالي 2-3 لترات من العصارة المعدية يومياً.`,
+    facts: [
+      {val:'4 لتر', lbl:'السعة القصوى'},
+      {val:'2-3 لتر', lbl:'عصارة/يوم'},
+      {val:'pH 1.5-3.5', lbl:'حموضة العصارة'},
+      {val:'3-5 ساعات', lbl:'وقت الهضم'},
+    ],
+    functions: ['تخزين الطعام مؤقتاً وبدء هضمه','إفراز حمض الهيدروكلوريك لقتل البكتيريا','إنتاج إنزيم الببسين لهضم البروتينات','تحريك الطعام ميكانيكياً بالانقباضات','إفراز عامل Castle لامتصاص فيتامين B12','إرسال الكيموس (الطعام المهضوم) للأمعاء الدقيقة'],
+    diseases: ['قرحة المعدة — بسبب H. pylori أو الأسبرين','التهاب المعدة الحاد والمزمن','سرطان المعدة','حموضة المعدة (الارتجاع)','متلازمة القولون العصبي','الغثيان والقيء المزمن'],
+    anatomy: 'تتكون من: الفم (cardia)، القعر، الجسم، والبواب (pylorus). جدارها من 4 طبقات: مخاطية، تحت مخاطية، عضلية، ومصلية. العضلة البوابية تتحكم في خروج الطعام.'
+  },
+  kidneys: {
+    name: 'الكليتان',
+    latin: 'Renes / Kidneys',
+    icon: '🫘',
+    color: '#00d4ff',
+    overview: `الكليتان هما مصفاة الجسم الحيوية. تُرشحان حوالي 180 لتراً من الدم يومياً وتُنتجان 1-2 لتر من البول. تحتوي كل كلية على مليون وحدة ترشيح تسمى النفرون.`,
+    facts: [
+      {val:'180 لتر', lbl:'دم مرشح/يوم'},
+      {val:'1 مليون', lbl:'نفرون لكل كلية'},
+      {val:'~150 غ', lbl:'وزن كل كلية'},
+      {val:'1-2 لتر', lbl:'بول/يوم'},
+    ],
+    functions: ['ترشيح الدم وإزالة فضلات الأيض','تنظيم توازن الماء والأملاح في الجسم','تنظيم ضغط الدم عبر إفراز الرينين','إنتاج الإريثروبويتين لتحفيز إنتاج كريات الدم','تنشيط فيتامين D لصحة العظام','الحفاظ على توازن pH الدم','إزالة الأدوية والسموم من الجسم'],
+    diseases: ['الفشل الكلوي الحاد والمزمن','الحصى الكلوية — رواسب معدنية','التهاب الحويضة والكلية (بكتيري)','متلازمة الكلية المفقودة','أمراض كبب الكلى (Glomerulonephritis)','سرطان الكلية'],
+    anatomy: 'كل كلية على شكل حبة الفول. تتكون من: القشرة الخارجية، اللب الداخلي، والحوض الكلوي. تتصل بالحالبين اللذين ينقلان البول إلى المثانة.'
+  },
+  intestine: {
+    name: 'الأمعاء',
+    latin: 'Intestinum',
+    icon: '🌀',
+    color: '#ff6b35',
+    overview: `الأمعاء الدقيقة وحدها يبلغ طولها 6-7 أمتار! أما الأمعاء الغليظة فطولها 1.5 متر. تتوفر في الأمعاء ما يقارب 100 تريليون بكتيريا نافعة تشكّل "الميكروبيوم" الذي يؤثر على المناعة والمزاج والصحة العامة.`,
+    facts: [
+      {val:'7-8 متر', lbl:'الطول الكلي'},
+      {val:'100 تريليون', lbl:'بكتيريا نافعة'},
+      {val:'200 م²', lbl:'مساحة الامتصاص'},
+      {val:'4-8 ساعات', lbl:'وقت العبور'},
+    ],
+    functions: ['امتصاص العناصر الغذائية: كربوهيدرات، بروتينات، دهون','امتصاص الماء والأملاح المعدنية في الأمعاء الغليظة','استكمال هضم الطعام بالإنزيمات','إنتاج هرمونات هضمية متعددة','دعم الجهاز المناعي (70% من المناعة في الأمعاء)','إزالة الفضلات والمواد غير المهضومة','التواصل مع الدماغ عبر محور الأمعاء-الدماغ'],
+    diseases: ['متلازمة القولون العصبي','مرض كرون — التهاب مزمن','التهاب القولون التقرحي','سرطان القولون والمستقيم','الإمساك والإسهال المزمن','انسداد الأمعاء'],
+    anatomy: 'الأمعاء الدقيقة: الاثني عشر (يستقبل إفرازات الكبد والبنكرياس)، الصائم (هضم رئيسي)، اللفائفي (امتصاص B12). الأمعاء الغليظة: الأعور، القولون بأجزائه، المستقيم، الشرج.'
+  },
+  spine: {
+    name: 'العمود الفقري',
+    latin: 'Columna Vertebralis',
+    icon: '🦴',
+    color: '#4488ff',
+    overview: `العمود الفقري هو ركيزة الجسم وحامي الحبل الشوكي. يتكون من 33 فقرة ويوفر دعماً هيكلياً كاملاً مع مرونة للحركة في جميع الاتجاهات.`,
+    facts: [
+      {val:'33 فقرة', lbl:'مكونات العمود'},
+      {val:'3 انحناء', lbl:'طبيعية S-شكل'},
+      {val:'31 زوج', lbl:'أعصاب شوكية'},
+      {val:'~72 سم', lbl:'الطول الوسطي'},
+    ],
+    functions: ['دعم وزن الجسم وتوزيعه على الحوض','حماية الحبل الشوكي الحساس','السماح بحركات الانحناء والتدوير','نقاط التثبيت للعضلات والأضلاع','الامتصاص الصدمي عبر الأقراص الفقرية','نقل الإشارات العصبية من الدماغ للجسم'],
+    diseases: ['انزلاق الغضروف (الديسك)','الجنف (انحراف العمود)','هشاشة العظام','التهاب المفاصل الفقاري','كسور الفقرات','تضيق القناة الشوكية'],
+    anatomy: '7 فقرات عنقية (C1-C7)، 12 صدرية (T1-T12)، 5 قطنية (L1-L5)، 5 عجزية ملتحمة، 4 عصعصية. بين كل فقرتين قرص غضروفي ممتص للصدمات.'
+  }
+};
+
+let currentOrgan = null;
+let currentTab = 'overview';
+let isRotating = true;
+let showOrgans = true;
+
+// ═══════════════════════════════
+//  SELECT ORGAN
+// ═══════════════════════════════
+function selectOrgan(id) {
+  currentOrgan = id;
+  const organ = organs[id];
+  if (!organ) return;
+
+  // Update cards
+  document.querySelectorAll('.organ-card').forEach(c => c.classList.remove('active'));
+  const card = document.getElementById('card-' + id);
+  if (card) card.classList.add('active');
+
+  // Update header
+  document.getElementById('organName').textContent = organ.name;
+  document.getElementById('organLatin').textContent = organ.latin;
+
+  // Hide welcome state
+  document.getElementById('welcomeState').style.display = 'none';
+
+  // Populate all tabs
+  populateTabs(organ);
+
+  // Switch to overview
+  switchTab('overview');
+
+  // Update AI placeholder
+  document.getElementById('aiInput').placeholder = `اسأل عن ${organ.name}...`;
+}
+
+function populateTabs(organ) {
+  // OVERVIEW
+  let overviewHTML = `
+    <p class="info-text">${organ.overview}</p>
+    <div class="facts-grid">
+      ${organ.facts.map(f => `<div class="fact-box"><div class="f-val">${f.val}</div><div class="f-lbl">${f.lbl}</div></div>`).join('')}
+    </div>`;
+  document.getElementById('tabOverview').innerHTML = overviewHTML;
+
+  // FUNCTIONS
+  let funcHTML = `<ul class="func-list">${organ.functions.map(f => `<li>${f}</li>`).join('')}</ul>`;
+  document.getElementById('tabFunctions').innerHTML = funcHTML;
+
+  // DISEASES
+  let disHTML = `<p style="color:var(--text-dim);font-size:0.8rem;margin-bottom:12px;">⚠️ الأمراض الشائعة المرتبطة بـ ${organ.name}:</p><ul class="disease-list">${organ.diseases.map(d => `<li>${d}</li>`).join('')}</ul>`;
+  document.getElementById('tabDiseases').innerHTML = disHTML;
+
+  // ANATOMY
+  let anaHTML = `<p class="info-text">${organ.anatomy}</p>
+    <div style="background:rgba(0,212,255,0.05);border:1px solid var(--border);border-radius:12px;padding:16px;margin-top:12px;">
+      <div style="font-size:2rem;text-align:center;margin-bottom:8px;">${organ.icon}</div>
+      <p style="text-align:center;font-size:0.8rem;color:var(--text-dim);">اضغط على الجسم ثلاثي الأبعاد لرؤية الموقع التشريحي</p>
+    </div>`;
+  document.getElementById('tabAnatomy').innerHTML = anaHTML;
+}
+
+function switchTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.info-section').forEach(s => s.classList.remove('active'));
+
+  const btnMap = {'overview':0,'functions':1,'diseases':2,'anatomy':3};
+  const tabMap = {'overview':'tabOverview','functions':'tabFunctions','diseases':'tabDiseases','anatomy':'tabAnatomy'};
+
+  const tabs = document.querySelectorAll('.tab-btn');
+  if (tabs[btnMap[tab]]) tabs[btnMap[tab]].classList.add('active');
+
+  const section = document.getElementById(tabMap[tab]);
+  if (section) section.classList.add('active');
+}
+
+// ═══════════════════════════════
+//  3D CONTROLS
+// ═══════════════════════════════
+function toggleRotation() {
+  const inner = document.getElementById('body3dInner');
+  const btn = document.getElementById('rotateBtn');
+  isRotating = !isRotating;
+  inner.style.animationPlayState = isRotating ? 'running' : 'paused';
+  btn.textContent = isRotating ? '⏸ إيقاف الدوران' : '▶ تشغيل الدوران';
+  btn.classList.toggle('playing', isRotating);
+}
+
+function toggleOrgans() {
+  showOrgans = !showOrgans;
+  document.querySelectorAll('.organ-svg-group').forEach(g => {
+    g.style.opacity = showOrgans ? '1' : '0';
+    g.style.transition = 'opacity 0.5s';
+  });
+}
+
+function resetView() {
+  const inner = document.getElementById('body3dInner');
+  inner.style.animation = 'none';
+  inner.offsetHeight; // reflow
+  inner.style.animation = 'bodyRotate 12s linear infinite';
+  isRotating = true;
+  document.getElementById('rotateBtn').textContent = '⏸ إيقاف الدوران';
+  document.getElementById('rotateBtn').classList.add('playing');
+}
+
+// ═══════════════════════════════
+//  AI ASSISTANT (Sidebar)
+// ═══════════════════════════════
+async function sendAI() {
+  const input = document.getElementById('aiInput');
+  const responseDiv = document.getElementById('aiResponse');
+  const query = input.value.trim();
+  if (!query) return;
+
+  const organContext = currentOrgan ? `العضو المحدد حالياً: ${organs[currentOrgan].name}. ` : '';
+
+  responseDiv.innerHTML = `<div class="ai-thinking"><span></span><span></span><span></span> يفكر...</div>`;
+  responseDiv.classList.add('show');
+  input.value = '';
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        system: `أنت مساعد طبي تعليمي متخصص في تشريح جسم الإنسان وعلم وظائف الأعضاء. ${organContext}أجب بالعربية بشكل واضح ومفيد وموجز (150-250 كلمة). استخدم رموز emoji مناسبة لجعل الإجابة ممتعة.`,
+        messages: [{role:'user', content: query}]
+      })
+    });
+    const data = await res.json();
+    const text = data.content?.map(c=>c.text||'').join('') || 'عذراً، لم أتمكن من الإجابة.';
+    responseDiv.innerHTML = `<div style="font-size:0.75rem;color:var(--accent3);margin-bottom:6px;display:flex;align-items:center;gap:4px;"><span>🤖</span> MedVision AI</div>${text}`;
+  } catch(e) {
+    responseDiv.innerHTML = '⚠️ تعذر الاتصال بالذكاء الاصطناعي. تحقق من الاتصال.';
+  }
+}
+
+// ═══════════════════════════════
+//  FULL AI PAGE
+// ═══════════════════════════════
+async function sendFullAI() {
+  const input = document.getElementById('aiFullInput');
+  const messages = document.getElementById('aiFullMessages');
+  const query = input.value.trim();
+  if (!query) return;
+
+  // User message
+  messages.innerHTML += `
+    <div style="background:rgba(0,102,255,0.1);border:1px solid rgba(0,102,255,0.2);border-radius:14px;padding:14px;margin-bottom:12px;text-align:right;">
+      <div style="font-size:0.8rem;color:var(--text-dim);margin-bottom:6px;">👤 أنت</div>
+      <p style="font-size:0.9rem;">${query}</p>
+    </div>`;
+
+  input.value = '';
+  messages.scrollTop = messages.scrollHeight;
+
+  // Thinking
+  const thinkId = 'think-' + Date.now();
+  messages.innerHTML += `<div id="${thinkId}" style="background:rgba(123,47,255,0.1);border:1px solid rgba(123,47,255,0.2);border-radius:14px;padding:14px;margin-bottom:12px;">
+    <div style="font-size:0.8rem;color:var(--text-dim);margin-bottom:6px;display:flex;align-items:center;gap:6px;">🤖 MedVision AI</div>
+    <div class="ai-thinking"><span></span><span></span><span></span> يكتب...</div>
+  </div>`;
+  messages.scrollTop = messages.scrollHeight;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:1000,
+        system:`أنت مساعد طبي تعليمي متقدم لمنصة MedVision Pro. تخصصك: تشريح جسم الإنسان، وظائف الأعضاء، الأمراض، الفسيولوجيا. أجب بالعربية بشكل علمي وواضح ومرتب. استخدم emoji ونقاط لتنظيم الإجابة. لا تتجاوز 350 كلمة.`,
+        messages:[{role:'user', content:query}]
+      })
+    });
+    const data = await res.json();
+    const text = data.content?.map(c=>c.text||'').join('') || 'عذراً، حدث خطأ.';
+    document.getElementById(thinkId).innerHTML = `
+      <div style="font-size:0.8rem;color:var(--text-dim);margin-bottom:8px;display:flex;align-items:center;gap:6px;">🤖 MedVision AI</div>
+      <div style="font-size:0.9rem;line-height:1.8;white-space:pre-wrap;">${text}</div>`;
+  } catch(e) {
+    document.getElementById(thinkId).innerHTML = `<div style="color:var(--red);">⚠️ خطأ في الاتصال</div>`;
+  }
+  messages.scrollTop = messages.scrollHeight;
+}
+
+function quickAsk(q) {
+  document.getElementById('aiFullInput').value = q;
+  sendFullAI();
+}
+
+// ═══════════════════════════════
+//  QUIZ
+// ═══════════════════════════════
+let quizHistory = [];
+
+async function startQuiz() {
+  document.getElementById('quizArea').innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-dim);">⌛ يجهز الذكاء الاصطناعي أول سؤال...</div>';
+  document.getElementById('quizChat').style.display = 'block';
+  quizHistory = [];
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:1000,
+        system:'أنت مدرس لمنصة تعليمية طبية تفاعلية. ابدأ باختبار تفاعلي عن جسم الإنسان. اطرح سؤالاً واحداً واضحاً في كل مرة عن الأعضاء ووظائفها، ثم انتظر الإجابة قبل المتابعة. كن مشجعاً وممتعاً. اللغة: العربية.',
+        messages:[{role:'user',content:'ابدأ الاختبار بسؤالك الأول'}]
+      })
+    });
+    const data = await res.json();
+    const q = data.content?.map(c=>c.text||'').join('') || '';
+    quizHistory = [{role:'user',content:'ابدأ الاختبار بسؤالك الأول'},{role:'assistant',content:q}];
+    addQuizMsg(q, false);
+    document.getElementById('quizArea').style.display = 'none';
+  } catch(e) {
+    document.getElementById('quizArea').innerHTML = '<p style="color:var(--red);">⚠️ فشل الاتصال</p>';
+  }
+}
+
+async function sendQuizAnswer() {
+  const input = document.getElementById('quizInput');
+  const ans = input.value.trim();
+  if (!ans) return;
+  addQuizMsg(ans, true);
+  input.value = '';
+
+  quizHistory.push({role:'user',content:ans});
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:1000,
+        system:'أنت مدرس تفاعلي للاختبار. صحح إجابة الطالب، اشرح الصواب، ثم اطرح سؤالاً جديداً. كن مشجعاً. استخدم ✅ للصواب و❌ للخطأ.',
+        messages: quizHistory
+      })
+    });
+    const data = await res.json();
+    const reply = data.content?.map(c=>c.text||'').join('') || '';
+    quizHistory.push({role:'assistant',content:reply});
+    addQuizMsg(reply, false);
+  } catch(e) {}
+}
+
+function addQuizMsg(text, isUser) {
+  const div = document.getElementById('quizMessages');
+  div.innerHTML += `
+    <div style="background:${isUser?'rgba(0,102,255,0.1)':'rgba(123,47,255,0.1)'};border:1px solid ${isUser?'rgba(0,102,255,0.2)':'rgba(123,47,255,0.2)'};border-radius:14px;padding:14px;margin-bottom:10px;">
+      <div style="font-size:0.75rem;color:var(--text-dim);margin-bottom:6px;">${isUser?'👤 أنت':'🤖 MedVision AI'}</div>
+      <p style="font-size:0.88rem;line-height:1.7;">${text}</p>
+    </div>`;
+  div.scrollTop = div.scrollHeight;
+}
+
+// ═══════════════════════════════
+//  PAGE NAVIGATION
+// ═══════════════════════════════
+function switchPage(page) {
+  ['map','quiz','ai'].forEach(p => {
+    document.getElementById('page-'+p).style.display = p===page ? (p==='map'?'grid':'block') : 'none';
+  });
+  document.querySelectorAll('.nav-btn').forEach((b,i) => {
+    b.classList.toggle('active', ['map','quiz','ai'][i]===page);
+  });
+}
+
+// SVG organ click events
+document.querySelectorAll('.organ-svg-group').forEach(g => {
+  g.style.cursor = 'pointer';
+});
+
+// Select brain by default after small delay
+setTimeout(() => selectOrgan('brain'), 500);
+</script>
+</body>
+</html>
